@@ -109,6 +109,9 @@ export class Base64ai implements INodeType {
 					json: true,
 					baseURL: BASE_URL,
 					headers: { ...DEFAULT_HEADERS },
+					qs: {
+						accessLevel: 'owner,administrator,uploader',
+					},
 				};
 
 				const flowsResponse = (await this.helpers.httpRequestWithAuthentication.call(
