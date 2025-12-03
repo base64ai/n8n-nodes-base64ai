@@ -54,8 +54,8 @@ Every operation returns the raw Base64.ai API payload so you can post-process it
 
 ## Resources
 
-- [Base64.ai Product Documentation](https://docs.base64.ai)
-- [Base64.ai API Reference](https://docs.base64.ai/reference)
+- [Base64.ai](https://base64.ai/)
+- [Base64.ai API Reference](https://apidoc.base64.ai/)
 - [n8n Community Nodes guide](https://docs.n8n.io/integrations/community-nodes/installation/)
 - Support: [support@base64.ai](mailto:support@base64.ai)
 
