@@ -46,7 +46,9 @@
     "typescript": "5.9.2"
   },
   "peerDependencies": { "n8n-workflow": "*" },
-  "git": {
-    "requireBranch": "master"
+  "release-it": {
+    "git": {
+      "requireBranch": "master"
+    }
   }
 }
