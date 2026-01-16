@@ -14,7 +14,7 @@ export const createScanInputProperties = (
 	return [
 		{
 			displayName: 'Input Source',
-			name: 'inputSource',
+			name: 'documentInputSource',
 			type: 'options',
 			options: [
 				{
@@ -35,8 +35,36 @@ export const createScanInputProperties = (
 			description: 'Select how to supply the document to Base64.ai',
 		},
 		{
+			displayName: 'Document URL',
+			name: 'documentUrl',
+			type: 'string',
+			required: true,
+			default: '',
+			displayOptions: {
+				show: {
+					...showOnly,
+					documentInputSource: ['url'],
+				},
+			},
+			description: 'Public URL of the document you want Base64.ai to scan',
+		},
+		{
+			displayName: 'Binary Property',
+			name: 'documentBinaryPropertyName',
+			type: 'string',
+			required: true,
+			default: 'data',
+			displayOptions: {
+				show: {
+					...showOnly,
+					documentInputSource: ['binary'],
+				},
+			},
+			description: 'Name of the binary property that contains the file data from a previous node',
+		},
+		{
 			displayName: 'Flow Selection',
-			name: 'flowSelection',
+			name: 'documentFlowSelection',
 			type: 'options',
 			options: [
 				{
@@ -52,12 +80,11 @@ export const createScanInputProperties = (
 			displayOptions: {
 				show: showOnly,
 			},
-			description:
-				'Decide whether to pick a Base64.ai flow from the list or enter an ID manually',
+			description: 'Decide whether to pick a Base64.ai flow from the list or enter an ID manually',
 		},
 		{
 			displayName: 'Flow Name or ID',
-			name: 'flowId',
+			name: 'documentFlowId',
 			type: 'options',
 			typeOptions: {
 				loadOptionsMethod: 'getFlows',
@@ -68,7 +95,7 @@ export const createScanInputProperties = (
 			displayOptions: {
 				show: {
 					...showOnly,
-					flowSelection: ['list'],
+					documentFlowSelection: ['list'],
 				},
 			},
 			description:
@@ -76,48 +103,16 @@ export const createScanInputProperties = (
 		},
 		{
 			displayName: 'Flow ID',
-			name: 'flowIdManual',
+			name: 'documentFlowIdManual',
 			type: 'string',
 			default: '',
 			displayOptions: {
 				show: {
 					...showOnly,
-					flowSelection: ['manual'],
+					documentFlowSelection: ['manual'],
 				},
 			},
 			description: 'Enter a Base64.ai flow ID such as b013f15e-be16-4438-918d-bd4ea115abe8',
 		},
-		{
-			displayName: 'Document URL',
-			name: 'documentUrl',
-			type: 'string',
-			required: true,
-			default: '',
-			displayOptions: {
-				show: {
-					...showOnly,
-					inputSource: ['url'],
-				},
-			},
-			description: 'Public URL of the document you want Base64.ai to scan',
-		},
-		{
-			displayName: 'Binary Property',
-			name: 'binaryPropertyName',
-			type: 'string',
-			required: true,
-			default: 'data',
-			displayOptions: {
-				show: {
-					...showOnly,
-					inputSource: ['binary'],
-				},
-			},
-			description:
-				'Name of the binary property that contains the file data from a previous node',
-		},
 	];
 };
-
-
-

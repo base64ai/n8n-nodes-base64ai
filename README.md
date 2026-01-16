@@ -50,7 +50,7 @@ Every operation returns the raw Base64.ai API payload so you can post-process it
 
 - Tested with n8n `>= 1.60.0` running on Node.js `>= 18.17`.
 - The codebase targets the latest n8n Node CLI (`@n8n/node-cli` v1) and TypeScript 5.9.
-- All requests are made against the public `https://api.base64.ai` endpoint.
+- All requests are made against the public `https://base64.ai/api` endpoint.
 
 ## Resources
 

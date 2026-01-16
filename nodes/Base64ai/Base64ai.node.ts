@@ -12,13 +12,12 @@ import {
 	type JsonObject,
 } from 'n8n-workflow';
 import { scanDescription } from './resources/scan';
-import { asyncDescription } from './resources/async';
 import { signatureDescription } from './resources/signature';
 import { faceDescription } from './resources/face';
 import { flowDescription } from './resources/flow';
 import { resultDescription } from './resources/result';
 
-const BASE_URL = 'https://api.base64.ai';
+const BASE_URL = 'https://base64.ai/api';
 const DEFAULT_HEADERS = {
 	Accept: 'application/json',
 	'Content-Type': 'application/json',
@@ -38,16 +37,16 @@ type OperationHandler = (
 
 export class Base64ai implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Base64.ai',
+		displayName: 'Base64 Document AI',
 		name: 'base64ai',
 		icon: { light: 'file:base64ai.svg', dark: 'file:base64ai.dark.svg' },
 		group: ['transform'],
 		defaultVersion: 1,
 		version: [1],
-		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with the Base64.ai API',
+		subtitle: 'All-in-one AI that understands every document',
+		description: 'All-in-one AI solution for document understanding',
 		defaults: {
-			name: 'Base64ai',
+			name: 'Base64 Document AI',
 		},
 		usableAsTool: true,
 		inputs: [NodeConnectionTypes.Main],
@@ -65,8 +64,8 @@ export class Base64ai implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'Async',
-						value: 'async',
+						name: 'Document',
+						value: 'document',
 					},
 					{
 						name: 'Face',
@@ -81,18 +80,13 @@ export class Base64ai implements INodeType {
 						value: 'result',
 					},
 					{
-						name: 'Scan',
-						value: 'scan',
-					},
-					{
 						name: 'Signature',
 						value: 'signature',
 					},
 				],
-				default: 'scan',
+				default: 'document',
 			},
 			...scanDescription,
-			...asyncDescription,
 			...signatureDescription,
 			...faceDescription,
 			...flowDescription,
@@ -186,7 +180,9 @@ function getFlowIdParameter(
 	listFieldName: string,
 	manualFieldName: string,
 ): string | undefined {
-	const flowSelection = context.getNodeParameter(selectionName, itemIndex, 'list') as 'list' | 'manual';
+	const flowSelection = context.getNodeParameter(selectionName, itemIndex, 'list') as
+		| 'list'
+		| 'manual';
 	const flowIdParam =
 		flowSelection === 'manual'
 			? (context.getNodeParameter(manualFieldName, itemIndex, '') as string)
@@ -203,7 +199,13 @@ function resolveFlowIdParameter(
 	listFieldName: string,
 	manualFieldName: string,
 ): string {
-	const flowId = getFlowIdParameter(context, itemIndex, selectionName, listFieldName, manualFieldName);
+	const flowId = getFlowIdParameter(
+		context,
+		itemIndex,
+		selectionName,
+		listFieldName,
+		manualFieldName,
+	);
 
 	if (!flowId) {
 		throw new NodeOperationError(context.getNode(), 'Flow ID is required to retrieve results.', {
@@ -219,14 +221,25 @@ async function buildScanRequestPayload(
 	items: INodeExecutionData[],
 	itemIndex: number,
 ): Promise<{ body: IDataObject; headers: Record<string, string> }> {
-	const inputSource = context.getNodeParameter('inputSource', itemIndex) as 'url' | 'binary';
-	const flowId = getFlowIdParameter(context, itemIndex, 'flowSelection', 'flowId', 'flowIdManual');
+	const inputSource = context.getNodeParameter('documentInputSource', itemIndex) as
+		| 'url'
+		| 'binary';
+	const flowId = getFlowIdParameter(
+		context,
+		itemIndex,
+		'documentFlowSelection',
+		'documentFlowId',
+		'documentFlowIdManual',
+	);
 	const body: IDataObject = {};
 
 	if (inputSource === 'url') {
 		body.url = context.getNodeParameter('documentUrl', itemIndex);
 	} else {
-		const binaryPropertyName = context.getNodeParameter('binaryPropertyName', itemIndex) as string;
+		const binaryPropertyName = context.getNodeParameter(
+			'documentBinaryPropertyName',
+			itemIndex,
+		) as string;
 		body.document = await getBinaryDataAsDataUri(context, items, itemIndex, binaryPropertyName);
 	}
 
@@ -244,13 +257,18 @@ async function buildSignatureRecognitionPayload(
 	items: INodeExecutionData[],
 	itemIndex: number,
 ): Promise<{ body: IDataObject; headers: Record<string, string> }> {
-	const inputSource = context.getNodeParameter('signatureInputSource', itemIndex) as 'url' | 'binary';
+	const inputSource = context.getNodeParameter('signatureRecognitionInputSource', itemIndex) as
+		| 'url'
+		| 'binary';
 	const body: IDataObject = {};
 
 	if (inputSource === 'url') {
-		body.url = context.getNodeParameter('signatureDocumentUrl', itemIndex);
+		body.url = context.getNodeParameter('signatureRecognitionDocumentUrl', itemIndex);
 	} else {
-		const binaryPropertyName = context.getNodeParameter('signatureBinaryPropertyName', itemIndex) as string;
+		const binaryPropertyName = context.getNodeParameter(
+			'signatureRecognitionBinaryPropertyName',
+			itemIndex,
+		) as string;
 		body.document = await getBinaryDataAsDataUri(context, items, itemIndex, binaryPropertyName);
 	}
 
@@ -281,7 +299,12 @@ async function buildSignatureVerificationPayload(
 		) as string;
 
 		body.document = await getBinaryDataAsDataUri(context, items, itemIndex, documentBinaryProperty);
-		body.queryDocument = await getBinaryDataAsDataUri(context, items, itemIndex, queryBinaryProperty);
+		body.queryDocument = await getBinaryDataAsDataUri(
+			context,
+			items,
+			itemIndex,
+			queryBinaryProperty,
+		);
 	}
 
 	return { body, headers: { ...DEFAULT_HEADERS } };
@@ -309,47 +332,59 @@ async function getBinaryDataAsDataUri(
 	return `data:${mimeType};base64,${base64Payload}`;
 }
 
-async function buildFaceDetectionPayload(
+async function buildFaceRecognitionPayload(
 	context: IExecuteFunctions,
 	items: INodeExecutionData[],
 	itemIndex: number,
 ): Promise<{ body: IDataObject; headers: Record<string, string> }> {
-	const inputSource = context.getNodeParameter('faceInputSource', itemIndex) as 'url' | 'binary';
+	const inputSource = context.getNodeParameter('faceRecognitionInputSource', itemIndex) as
+		| 'url'
+		| 'binary';
 	const body: IDataObject = {};
 
 	if (inputSource === 'url') {
-		body.url = context.getNodeParameter('faceDocumentUrl', itemIndex);
+		body.url = context.getNodeParameter('faceRecognitionDocumentUrl', itemIndex);
 	} else {
-		const binaryPropertyName = context.getNodeParameter('faceBinaryPropertyName', itemIndex) as string;
+		const binaryPropertyName = context.getNodeParameter(
+			'faceRecognitionBinaryPropertyName',
+			itemIndex,
+		) as string;
 		body.document = await getBinaryDataAsDataUri(context, items, itemIndex, binaryPropertyName);
 	}
 
 	return { body, headers: { ...DEFAULT_HEADERS } };
 }
 
-async function buildFaceRecognitionPayload(
+async function buildFaceVerificationPayload(
 	context: IExecuteFunctions,
 	items: INodeExecutionData[],
 	itemIndex: number,
 ): Promise<{ body: IDataObject; headers: Record<string, string> }> {
-	const inputSource = context.getNodeParameter('faceRecognitionInputSource', itemIndex) as 'url' | 'binary';
+	const inputSource = context.getNodeParameter('faceVerificationInputSource', itemIndex) as
+		| 'url'
+		| 'binary';
 	const body: IDataObject = {};
 
 	if (inputSource === 'url') {
-		body.url = context.getNodeParameter('faceRecognitionDocumentUrl', itemIndex);
-		body.queryUrl = context.getNodeParameter('faceRecognitionQueryUrl', itemIndex);
+		body.url = context.getNodeParameter('faceVerificationDocumentUrl', itemIndex);
+		body.queryUrl = context.getNodeParameter('faceVerificationQueryUrl', itemIndex);
 	} else {
 		const documentBinaryProperty = context.getNodeParameter(
-			'faceRecognitionBinaryPropertyName',
+			'faceVerificationBinaryPropertyName',
 			itemIndex,
 		) as string;
 		const queryBinaryProperty = context.getNodeParameter(
-			'faceRecognitionQueryBinaryPropertyName',
+			'faceVerificationQueryBinaryPropertyName',
 			itemIndex,
 		) as string;
 
 		body.document = await getBinaryDataAsDataUri(context, items, itemIndex, documentBinaryProperty);
-		body.queryDocument = await getBinaryDataAsDataUri(context, items, itemIndex, queryBinaryProperty);
+		body.queryDocument = await getBinaryDataAsDataUri(
+			context,
+			items,
+			itemIndex,
+			queryBinaryProperty,
+		);
 	}
 
 	return { body, headers: { ...DEFAULT_HEADERS } };
@@ -450,13 +485,13 @@ const getResultByUuidHandler: OperationHandler = async (context, _items, itemInd
 };
 
 const operationHandlers: Record<string, OperationHandler> = {
-	'scan:scanDocument': createPostHandler('/scan', buildScanRequestPayload),
-	'async:createAsyncScan': createPostHandler('/scan/async', buildScanRequestPayload),
-	'async:getAsyncScanResult': getAsyncScanResultHandler,
+	'document:recognizeDocument': createPostHandler('/scan', buildScanRequestPayload),
+	'document:recognizeDocumentAsync': createPostHandler('/scan/async', buildScanRequestPayload),
+	'document:getAsyncScanResult': getAsyncScanResultHandler,
 	'signature:recognizeSignature': createPostHandler('/signature', buildSignatureRecognitionPayload),
 	'signature:verifySignature': createPostHandler('/signature', buildSignatureVerificationPayload),
-	'face:detectFace': createPostHandler('/face', buildFaceDetectionPayload),
 	'face:recognizeFace': createPostHandler('/face', buildFaceRecognitionPayload),
+	'face:verifyFace': createPostHandler('/face', buildFaceVerificationPayload),
 	'flow:listFlows': listFlowsHandler,
 	'result:getFlowResults': getFlowResultsHandler,
 	'result:getResultByUuid': getResultByUuidHandler,

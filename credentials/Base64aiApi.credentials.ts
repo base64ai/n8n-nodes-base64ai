@@ -44,7 +44,7 @@ export class Base64aiApi implements ICredentialType {
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: 'https://api.base64.ai',
+			baseURL: 'https://base64.ai/api',
 			url: '/auth/user',
 		},
 	};

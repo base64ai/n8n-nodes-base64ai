@@ -21,7 +21,7 @@ const inputSourceOptions = [
 const signatureRecognitionProperties: INodeProperties[] = [
 	{
 		displayName: 'Input Source',
-		name: 'signatureInputSource',
+		name: 'signatureRecognitionInputSource',
 		type: 'options',
 		options: inputSourceOptions,
 		default: 'url',
@@ -32,28 +32,28 @@ const signatureRecognitionProperties: INodeProperties[] = [
 	},
 	{
 		displayName: 'Signature URL',
-		name: 'signatureDocumentUrl',
+		name: 'signatureRecognitionDocumentUrl',
 		type: 'string',
 		required: true,
 		default: '',
 		displayOptions: {
 			show: {
 				...createDisplayOptions('recognizeSignature'),
-				signatureInputSource: ['url'],
+				signatureRecognitionInputSource: ['url'],
 			},
 		},
-		description: 'Public URL of the signature image to process',
+		description: 'URL of the signature image to recognize',
 	},
 	{
 		displayName: 'Binary Property',
-		name: 'signatureBinaryPropertyName',
+		name: 'signatureRecognitionBinaryPropertyName',
 		type: 'string',
 		required: true,
 		default: 'data',
 		displayOptions: {
 			show: {
 				...createDisplayOptions('recognizeSignature'),
-				signatureInputSource: ['binary'],
+				signatureRecognitionInputSource: ['binary'],
 			},
 		},
 		description: 'Binary property that contains the signature image',
@@ -84,7 +84,7 @@ const signatureVerificationProperties: INodeProperties[] = [
 				signatureVerificationInputSource: ['url'],
 			},
 		},
-		description: 'URL for the signature being verified',
+		description: 'URL of the signature you want to verify',
 	},
 	{
 		displayName: 'Reference Signature URL',
@@ -98,7 +98,7 @@ const signatureVerificationProperties: INodeProperties[] = [
 				signatureVerificationInputSource: ['url'],
 			},
 		},
-		description: 'URL for the reference signature to compare against',
+		description: 'URL of the reference signature to compare against',
 	},
 	{
 		displayName: 'Signature Binary Property',
@@ -112,7 +112,7 @@ const signatureVerificationProperties: INodeProperties[] = [
 				signatureVerificationInputSource: ['binary'],
 			},
 		},
-		description: 'Binary property that contains the signature being verified',
+		description: 'Binary property containing the signature being verified',
 	},
 	{
 		displayName: 'Reference Binary Property',
@@ -126,7 +126,7 @@ const signatureVerificationProperties: INodeProperties[] = [
 				signatureVerificationInputSource: ['binary'],
 			},
 		},
-		description: 'Binary property that contains the reference signature',
+		description: 'Binary property containing the reference signature',
 	},
 ];
 
@@ -146,13 +146,13 @@ export const signatureDescription: INodeProperties[] = [
 				name: 'Recognize Signature',
 				value: 'recognizeSignature',
 				action: 'Recognize a signature',
-				description: 'Extract signature information from an image or document',
+				description: 'Recognize a signature from a single image',
 			},
 			{
 				name: 'Verify Signature',
 				value: 'verifySignature',
 				action: 'Verify a signature',
-				description: 'Compare a signature against a reference sample',
+				description: 'Verify a signature by comparing two images',
 			},
 		],
 		default: 'recognizeSignature',
@@ -160,6 +160,3 @@ export const signatureDescription: INodeProperties[] = [
 	...signatureRecognitionProperties,
 	...signatureVerificationProperties,
 ];
-
-
-

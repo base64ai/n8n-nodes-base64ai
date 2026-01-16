@@ -1,3 +1,3 @@
 import { createScanInputProperties } from '../shared/scanInputs';
 
-export const scanDocumentDescription = createScanInputProperties('scan', 'scanDocument');
+export const scanDocumentDescription = createScanInputProperties('document', 'recognizeDocument');

@@ -18,48 +18,6 @@ const inputSourceOptions = [
 	},
 ];
 
-const faceDetectionProperties: INodeProperties[] = [
-	{
-		displayName: 'Input Source',
-		name: 'faceInputSource',
-		type: 'options',
-		options: inputSourceOptions,
-		default: 'url',
-		displayOptions: {
-			show: createDisplayOptions('detectFace'),
-		},
-		description: 'Select how to supply the face image to Base64.ai',
-	},
-	{
-		displayName: 'Face URL',
-		name: 'faceDocumentUrl',
-		type: 'string',
-		required: true,
-		default: '',
-		displayOptions: {
-			show: {
-				...createDisplayOptions('detectFace'),
-				faceInputSource: ['url'],
-			},
-		},
-		description: 'URL of the image that contains the face to detect',
-	},
-	{
-		displayName: 'Binary Property',
-		name: 'faceBinaryPropertyName',
-		type: 'string',
-		required: true,
-		default: 'data',
-		displayOptions: {
-			show: {
-				...createDisplayOptions('detectFace'),
-				faceInputSource: ['binary'],
-			},
-		},
-		description: 'Binary property that contains the image to analyze',
-	},
-];
-
 const faceRecognitionProperties: INodeProperties[] = [
 	{
 		displayName: 'Input Source',
@@ -70,7 +28,7 @@ const faceRecognitionProperties: INodeProperties[] = [
 		displayOptions: {
 			show: createDisplayOptions('recognizeFace'),
 		},
-		description: 'Select how to provide the target and reference face images',
+		description: 'Select how to supply the face image to Base64.ai',
 	},
 	{
 		displayName: 'Face URL',
@@ -84,46 +42,88 @@ const faceRecognitionProperties: INodeProperties[] = [
 				faceRecognitionInputSource: ['url'],
 			},
 		},
-		description: 'URL of the face you want to recognize',
+		description: 'URL of the face image to recognize',
 	},
 	{
-		displayName: 'Reference Face URL',
-		name: 'faceRecognitionQueryUrl',
+		displayName: 'Binary Property',
+		name: 'faceRecognitionBinaryPropertyName',
+		type: 'string',
+		required: true,
+		default: 'data',
+		displayOptions: {
+			show: {
+				...createDisplayOptions('recognizeFace'),
+				faceRecognitionInputSource: ['binary'],
+			},
+		},
+		description: 'Binary property that contains the face image',
+	},
+];
+
+const faceVerificationProperties: INodeProperties[] = [
+	{
+		displayName: 'Input Source',
+		name: 'faceVerificationInputSource',
+		type: 'options',
+		options: inputSourceOptions,
+		default: 'url',
+		displayOptions: {
+			show: createDisplayOptions('verifyFace'),
+		},
+		description: 'Select how to supply the face pair to Base64.ai',
+	},
+	{
+		displayName: 'Face URL',
+		name: 'faceVerificationDocumentUrl',
 		type: 'string',
 		required: true,
 		default: '',
 		displayOptions: {
 			show: {
-				...createDisplayOptions('recognizeFace'),
-				faceRecognitionInputSource: ['url'],
+				...createDisplayOptions('verifyFace'),
+				faceVerificationInputSource: ['url'],
+			},
+		},
+		description: 'URL of the face you want to verify',
+	},
+	{
+		displayName: 'Reference Face URL',
+		name: 'faceVerificationQueryUrl',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				...createDisplayOptions('verifyFace'),
+				faceVerificationInputSource: ['url'],
 			},
 		},
 		description: 'URL of the reference face to compare against',
 	},
 	{
 		displayName: 'Face Binary Property',
-		name: 'faceRecognitionBinaryPropertyName',
+		name: 'faceVerificationBinaryPropertyName',
 		type: 'string',
 		required: true,
 		default: 'faceDocument',
 		displayOptions: {
 			show: {
-				...createDisplayOptions('recognizeFace'),
-				faceRecognitionInputSource: ['binary'],
+				...createDisplayOptions('verifyFace'),
+				faceVerificationInputSource: ['binary'],
 			},
 		},
-		description: 'Binary property containing the face being recognized',
+		description: 'Binary property containing the face being verified',
 	},
 	{
 		displayName: 'Reference Binary Property',
-		name: 'faceRecognitionQueryBinaryPropertyName',
+		name: 'faceVerificationQueryBinaryPropertyName',
 		type: 'string',
 		required: true,
 		default: 'referenceFace',
 		displayOptions: {
 			show: {
-				...createDisplayOptions('recognizeFace'),
-				faceRecognitionInputSource: ['binary'],
+				...createDisplayOptions('verifyFace'),
+				faceVerificationInputSource: ['binary'],
 			},
 		},
 		description: 'Binary property containing the reference face',
@@ -143,23 +143,20 @@ export const faceDescription: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'Detect Face',
-				value: 'detectFace',
-				action: 'Detect face',
-				description: 'Detect faces from an image',
-			},
-			{
 				name: 'Recognize Face',
 				value: 'recognizeFace',
-				action: 'Recognize face',
-				description: 'Match a face against a reference sample',
+				action: 'Recognize a face',
+				description: 'Recognize a face from a single image',
+			},
+			{
+				name: 'Verify Face',
+				value: 'verifyFace',
+				action: 'Verify a face',
+				description: 'Verify a face by comparing two images',
 			},
 		],
-		default: 'detectFace',
+		default: 'recognizeFace',
 	},
-	...faceDetectionProperties,
 	...faceRecognitionProperties,
+	...faceVerificationProperties,
 ];
-
-
-
