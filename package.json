@@ -1,6 +1,6 @@
 {
   "name": "@base64ai/n8n-nodes-base64ai",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Official Base64.ai community node for n8n",
   "license": "MIT",
   "homepage": "https://github.com/base64ai/n8n-nodes-base64ai#readme",
