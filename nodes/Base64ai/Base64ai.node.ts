@@ -7,6 +7,7 @@ import {
 	type ILoadOptionsFunctions,
 	type IHttpRequestOptions,
 	type INodeExecutionData,
+	type INodeListSearchResult,
 	type INodeType,
 	type INodeTypeDescription,
 	type JsonObject,
@@ -41,8 +42,8 @@ export class Base64ai implements INodeType {
 		name: 'base64ai',
 		icon: { light: 'file:base64ai.svg', dark: 'file:base64ai.dark.svg' },
 		group: ['transform'],
-		defaultVersion: 1,
-		version: [1],
+		defaultVersion: 2,
+		version: [1, 2],
 		subtitle: 'All-in-one AI that understands every document',
 		description: 'All-in-one AI solution for document understanding',
 		defaults: {
@@ -126,6 +127,48 @@ export class Base64ai implements INodeType {
 					}));
 			},
 		},
+		listSearch: {
+			async getFlows(this: ILoadOptionsFunctions, filter?: string): Promise<INodeListSearchResult> {
+				const requestOptions: IHttpRequestOptions = {
+					method: 'GET',
+					url: '/flow',
+					json: true,
+					baseURL: BASE_URL,
+					headers: { ...DEFAULT_HEADERS },
+					qs: {
+						accessLevel: 'owner,administrator,uploader',
+					},
+				};
+
+				const flowsResponse = (await this.helpers.httpRequestWithAuthentication.call(
+					this,
+					'base64aiApi',
+					requestOptions,
+				)) as Array<{ flowID: string; name?: string }>;
+
+				if (!Array.isArray(flowsResponse)) {
+					return { results: [] };
+				}
+
+				const normalizedFilter = filter?.toLowerCase().trim();
+				const filtered = normalizedFilter
+					? flowsResponse.filter((flow) => {
+							const id = flow.flowID?.toLowerCase() ?? '';
+							const name = flow.name?.toLowerCase() ?? '';
+							return id.includes(normalizedFilter) || name.includes(normalizedFilter);
+						})
+					: flowsResponse;
+
+				return {
+					results: filtered
+						.filter((flow) => typeof flow?.flowID === 'string')
+						.map((flow) => ({
+							name: flow.name ?? flow.flowID,
+							value: flow.flowID,
+						})),
+				};
+			},
+		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -154,7 +197,10 @@ export class Base64ai implements INodeType {
 					requestOptions,
 				);
 
-				returnData.push({ json: response as IDataObject });
+				const shouldSimplify = shouldSimplifyResponse(this, i, handlerKey);
+				const output = shouldSimplify ? simplifyResponse(handlerKey, response) : response;
+
+				returnData.push({ json: output as IDataObject });
 			} catch (error) {
 				if (this.continueOnFail()) {
 					returnData.push({ json: { error: (error as Error).message } });
@@ -171,6 +217,18 @@ export class Base64ai implements INodeType {
 
 		return [returnData];
 	}
+}
+
+function getResourceLocatorValue(
+	context: IExecuteFunctions,
+	itemIndex: number,
+	parameterName: string,
+): string | undefined {
+	const resourceLocator = context.getNodeParameter(parameterName, itemIndex, null) as
+		| { value?: string }
+		| null;
+	const value = resourceLocator?.value?.toString().trim();
+	return value || undefined;
 }
 
 function getFlowIdParameter(
@@ -199,13 +257,14 @@ function resolveFlowIdParameter(
 	listFieldName: string,
 	manualFieldName: string,
 ): string {
-	const flowId = getFlowIdParameter(
-		context,
-		itemIndex,
-		selectionName,
-		listFieldName,
-		manualFieldName,
-	);
+	const flowId =
+		context.getNode().typeVersion >= 2
+			? getResourceLocatorValue(
+					context,
+					itemIndex,
+					selectionName === 'resultFlowSelection' ? 'resultFlow' : 'documentFlow',
+				)
+			: getFlowIdParameter(context, itemIndex, selectionName, listFieldName, manualFieldName);
 
 	if (!flowId) {
 		throw new NodeOperationError(context.getNode(), 'Flow ID is required to retrieve results.', {
@@ -224,13 +283,16 @@ async function buildScanRequestPayload(
 	const inputSource = context.getNodeParameter('documentInputSource', itemIndex) as
 		| 'url'
 		| 'binary';
-	const flowId = getFlowIdParameter(
-		context,
-		itemIndex,
-		'documentFlowSelection',
-		'documentFlowId',
-		'documentFlowIdManual',
-	);
+	const flowId =
+		context.getNode().typeVersion >= 2
+			? getResourceLocatorValue(context, itemIndex, 'documentFlow')
+			: getFlowIdParameter(
+					context,
+					itemIndex,
+					'documentFlowSelection',
+					'documentFlowId',
+					'documentFlowIdManual',
+				);
 	const body: IDataObject = {};
 
 	if (inputSource === 'url') {
@@ -438,6 +500,11 @@ const getFlowResultsHandler: OperationHandler = async (context, _items, itemInde
 		qNextTimestamp?: string;
 		filter?: string;
 	};
+	const sorting =
+		context.getNode().typeVersion >= 2
+			? ((context.getNodeParameter('resultSorting', itemIndex, {}) as IDataObject) ?? {})
+			: {};
+	const { orderBy } = sorting as { orderBy?: string };
 
 	const qs: IDataObject = { flowID: flowId };
 
@@ -455,6 +522,10 @@ const getFlowResultsHandler: OperationHandler = async (context, _items, itemInde
 
 	if (typeof filter === 'string' && filter.trim().length > 0) {
 		qs.filter = filter.trim();
+	}
+
+	if (typeof orderBy === 'string' && orderBy.trim().length > 0) {
+		qs.orderBy = orderBy.trim();
 	}
 
 	return {
@@ -483,6 +554,150 @@ const getResultByUuidHandler: OperationHandler = async (context, _items, itemInd
 		headers: { ...DEFAULT_HEADERS },
 	};
 };
+
+const simplifyHandlerKeys = new Set([
+	'document:recognizeDocument',
+	'document:recognizeDocumentAsync',
+	'document:getAsyncScanResult',
+	'result:getFlowResults',
+	'result:getResultByUuid',
+]);
+
+function shouldSimplifyResponse(
+	context: IExecuteFunctions,
+	itemIndex: number,
+	handlerKey: string,
+): boolean {
+	if (context.getNode().typeVersion < 2) {
+		return false;
+	}
+
+	if (!simplifyHandlerKeys.has(handlerKey)) {
+		return false;
+	}
+
+	return (context.getNodeParameter('simplify', itemIndex, false) as boolean) === true;
+}
+
+function simplifyResponse(handlerKey: string, response: unknown): unknown {
+	switch (handlerKey) {
+		case 'document:recognizeDocument':
+		case 'document:recognizeDocumentAsync':
+			return simplifyScanResults(response);
+		case 'document:getAsyncScanResult':
+			return simplifyAsyncScanResults(response);
+		case 'result:getFlowResults':
+			return simplifyFlowResults(response);
+		case 'result:getResultByUuid':
+			return simplifyResultByUuid(response);
+		default:
+			return response as IDataObject;
+	}
+}
+
+function simplifyScanResults(response: unknown): IDataObject[] | IDataObject {
+	if (!Array.isArray(response)) {
+		return response as IDataObject;
+	}
+
+	return response.map((result) => {
+		const features = (result as IDataObject)?.features as IDataObject | undefined;
+		const tables = Array.isArray(features?.tables) ? features?.tables?.length : undefined;
+		const faces = Array.isArray(features?.faces) ? features?.faces?.length : undefined;
+		const signatures = Array.isArray(features?.signatures) ? features?.signatures?.length : undefined;
+		const stamps = Array.isArray(features?.stamps) ? features?.stamps?.length : undefined;
+		const model = (result as IDataObject)?.model as IDataObject | undefined;
+
+		return {
+			uuid: (result as IDataObject)?.uuid ?? (result as IDataObject)?.resultUuid,
+			modelType: model?.type ?? (result as IDataObject)?.modelType,
+			modelName: model?.name ?? (result as IDataObject)?.modelName,
+			confidence: model?.confidence ?? (result as IDataObject)?.confidence,
+			fields: (result as IDataObject)?.fields,
+			pageCount:
+				(result as IDataObject)?.pageCount ??
+				(features?.properties as IDataObject | undefined)?.pageCount,
+			tableCount: tables,
+			faceCount: faces,
+			signatureCount: signatures,
+			stampCount: stamps,
+		};
+	});
+}
+
+function simplifyAsyncScanResults(response: unknown): IDataObject | IDataObject[] {
+	if (!response || typeof response !== 'object') {
+		return response as IDataObject;
+	}
+
+	const responseObject = response as IDataObject;
+	if (Array.isArray(responseObject.result)) {
+		return {
+			status: responseObject.status,
+			result: simplifyScanResults(responseObject.result),
+		};
+	}
+
+	if (Array.isArray(response)) {
+		return simplifyScanResults(response);
+	}
+
+	return responseObject;
+}
+
+function simplifyFlowResults(response: unknown): IDataObject {
+	if (!response || typeof response !== 'object') {
+		return response as IDataObject;
+	}
+
+	const responseObject = response as IDataObject;
+	const results = Array.isArray(responseObject.results) ? responseObject.results : [];
+	const simplifiedResults = results.map((item) => {
+		const model = (item as IDataObject)?.model as IDataObject | undefined;
+
+		return {
+			resultUuid: (item as IDataObject)?.resultUuid ?? (item as IDataObject)?.uuid,
+			status: (item as IDataObject)?.status,
+			createdAt: (item as IDataObject)?.createdAt,
+			updatedAt: (item as IDataObject)?.updatedAt,
+			fileName: (item as IDataObject)?.fileName,
+			modelType: model?.type ?? (item as IDataObject)?.modelType,
+			modelName: model?.name ?? (item as IDataObject)?.modelName,
+			errorCode: (item as IDataObject)?.errorCode,
+			errorMessage: (item as IDataObject)?.errorMessage,
+			additionalListColumns: (item as IDataObject)?.additionalListColumns,
+		};
+	});
+
+	return {
+		orderBy: responseObject.orderBy,
+		results: simplifiedResults,
+	};
+}
+
+function simplifyResultByUuid(response: unknown): IDataObject {
+	if (!response || typeof response !== 'object') {
+		return response as IDataObject;
+	}
+
+	const responseObject = response as IDataObject;
+	const resultArray = Array.isArray(responseObject.result) ? responseObject.result : [];
+	const firstResult = resultArray[0] as IDataObject | undefined;
+	const model = firstResult?.model as IDataObject | undefined;
+
+	return {
+		resultUuid: firstResult?.uuid ?? responseObject.resultUuid ?? responseObject.uuid,
+		fileName: responseObject.fileName ?? firstResult?.fileName,
+		status: responseObject.hitlStatus ?? responseObject.status ?? firstResult?.status,
+		createdAt: responseObject.createdAt ?? firstResult?.createdAt,
+		updatedAt: responseObject.updatedAt ?? firstResult?.updatedAt,
+		modelType: model?.type ?? firstResult?.modelType,
+		modelName: model?.name ?? firstResult?.modelName,
+		fields: firstResult?.fields ?? responseObject.fields,
+		errorCode: responseObject.errorCode ?? firstResult?.errorCode,
+		errorMessage: responseObject.errorMessage ?? firstResult?.errorMessage,
+	};
+}
 
 const operationHandlers: Record<string, OperationHandler> = {
 	'document:recognizeDocument': createPostHandler('/scan', buildScanRequestPayload),

@@ -14,6 +14,7 @@ const getAsyncScanResultDescription: INodeProperties[] = [
 		name: 'asyncFileUuid',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. 2fa8fca0-b41d-3280-8b6e-0c47ddd22673',
 		default: '',
 		displayOptions: {
 			show: {
@@ -23,6 +24,20 @@ const getAsyncScanResultDescription: INodeProperties[] = [
 		},
 		description:
 			'UUID returned from the async scan creation request. Used to poll for completion or fetch the result.',
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['getAsyncScanResult'],
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
 	},
 ];
 
@@ -59,6 +74,34 @@ export const scanDescription: INodeProperties[] = [
 		default: 'recognizeDocument',
 	},
 	...scanDocumentDescription,
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['recognizeDocument'],
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
+	},
 	...createAsyncScanDescription,
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['recognizeDocumentAsync'],
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
+	},
 	...getAsyncScanResultDescription,
 ];
