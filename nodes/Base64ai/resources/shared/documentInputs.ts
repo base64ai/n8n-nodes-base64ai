@@ -5,7 +5,7 @@ const createDisplayOptions = (resource: string, operation: string) => ({
 	resource: [resource],
 });
 
-export const createScanInputProperties = (
+export const createDocumentInputProperties = (
 	resource: string,
 	operation: string,
 ): INodeProperties[] => {

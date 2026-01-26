@@ -1,12 +1,15 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { scanDocumentDescription } from './scanDocument';
-import { createScanInputProperties } from '../shared/scanInputs';
+import { recognizeDocumentDescription } from './recognizeDocument';
+import { createDocumentInputProperties } from '../shared';
 
 const showOnlyForDocument = {
 	resource: ['document'],
 };
 
-const createAsyncScanDescription = createScanInputProperties('document', 'recognizeDocumentAsync');
+const createAsyncScanDescription = createDocumentInputProperties(
+	'document',
+	'recognizeDocumentAsync',
+);
 
 const getAsyncScanResultDescription: INodeProperties[] = [
 	{
@@ -41,7 +44,7 @@ const getAsyncScanResultDescription: INodeProperties[] = [
 	},
 ];
 
-export const scanDescription: INodeProperties[] = [
+export const documentDescription: INodeProperties[] = [
 	{
 		displayName: 'Operation',
 		name: 'operation',
@@ -73,7 +76,7 @@ export const scanDescription: INodeProperties[] = [
 		],
 		default: 'recognizeDocument',
 	},
-	...scanDocumentDescription,
+	...recognizeDocumentDescription,
 	{
 		displayName: 'Simplify',
 		name: 'simplify',

@@ -12,7 +12,7 @@ import {
 	type INodeTypeDescription,
 	type JsonObject,
 } from 'n8n-workflow';
-import { scanDescription } from './resources/scan';
+import { documentDescription } from './resources/document/index';
 import { signatureDescription } from './resources/signature';
 import { faceDescription } from './resources/face';
 import { flowDescription } from './resources/flow';
@@ -87,7 +87,7 @@ export class Base64ai implements INodeType {
 				],
 				default: 'document',
 			},
-			...scanDescription,
+			...documentDescription,
 			...signatureDescription,
 			...faceDescription,
 			...flowDescription,
