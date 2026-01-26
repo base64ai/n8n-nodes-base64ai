@@ -35,6 +35,7 @@ const signatureRecognitionProperties: INodeProperties[] = [
 		name: 'signatureRecognitionDocumentUrl',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. https://example.com/signature.png',
 		default: '',
 		displayOptions: {
 			show: {
@@ -77,6 +78,7 @@ const signatureVerificationProperties: INodeProperties[] = [
 		name: 'signatureVerificationDocumentUrl',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. https://example.com/signature.png',
 		default: '',
 		displayOptions: {
 			show: {
@@ -91,6 +93,7 @@ const signatureVerificationProperties: INodeProperties[] = [
 		name: 'signatureVerificationQueryUrl',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. https://example.com/reference-signature.png',
 		default: '',
 		displayOptions: {
 			show: {

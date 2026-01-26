@@ -1,0 +1,1 @@
+export { createDocumentInputProperties } from './documentInputs';

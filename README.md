@@ -30,21 +30,37 @@ Credentials are transported over HTTPS and stored by n8n according to your insta
 
 | Resource | Operations | Description |
 | --- | --- | --- |
-| Scan | `scanDocument` | Upload or link to a document and run a selected Base64.ai flow synchronously. |
-| Async | `createAsyncScan`, `getAsyncScanResult` | Submit heavy workloads asynchronously and poll for completion by UUID. |
-| Signature | `recognizeSignature`, `verifySignature` | Detect signatures on a single document or compare two signatures for verification. |
-| Face | `detectFace`, `recognizeFace` | Run biometric detection or compare two faces. |
-| Flow | `listFlows` | Enumerate flows available to the authenticated workspace (used to populate dropdowns). |
-| Result | `getFlowResults`, `getResultByUuid` | Fetch processed results in bulk or by UUID for downstream systems. |
+| Document | Recognize Document, Recognize Document Async, Get Async Scan Result | Upload or link to a document and run a selected Base64.ai flow, either sync or async. |
+| Signature | Recognize Signature, Verify Signature | Detect signatures on a single document or compare two signatures for verification. |
+| Face | Recognize Face, Verify Face | Run biometric detection or compare two faces. |
+| Flow | List Flows | Enumerate flows available to the authenticated workspace (used to populate dropdowns). |
+| Result | Get Flow Results, Get Result By UUID | Fetch processed results in bulk or by UUID for downstream systems. |
 
 Every operation returns the raw Base64.ai API payload so you can post-process it with native n8n nodes.
 
 ## Usage Notes
 
 - **Input Source** – You can provide publicly accessible URLs or binary data from earlier nodes. When using binaries, ensure the previous node sets `data` (or customize the property name) and the binary data is not too large for your n8n instance.
-- **Flows** – The Scan and Result resources support selecting a flow from the Base64.ai API or entering an ID manually. Use manual entry for dynamic expressions or when the flow is newly created.
-- **Asynchronous workloads** – Use the Async resource for multi-page or high-volume documents; store the returned UUID and poll with `getAsyncScanResult` until the status becomes `done`.
+- **Flows** – The Document and Result resources support selecting a flow from the Base64.ai API or entering an ID manually. Use manual entry for dynamic expressions or when the flow is newly created.
+- **Asynchronous workloads** – Use **Document → Recognize Document Async** for multi-page or high-volume documents; store the returned UUID and poll with **Document → Get Async Scan Result** until the status becomes `done`.
 - **Headers** – When you provide a Flow ID the node automatically adds the `base64ai-flow-id` header required by the API.
+
+## Example Workflow
+
+**Goal:** Recognize a document from a public URL and extract fields.
+
+1. Add a **Manual Trigger** node.
+2. Add **Base64 Document AI** and set:
+   - **Resource**: Document
+   - **Operation**: Recognize Document
+   - **Input Source**: URL
+   - **Document URL**: `https://example.com/sample-invoice.pdf`
+   - **Flow**: Select a flow from the list (or enter a Flow ID manually)
+3. Add a **Set** node to pick the fields you need from the response, for example:
+   - `{{$json.fields.invoice_number.value}}`
+   - `{{$json.fields.total.value}}`
+
+This workflow will return the raw Base64.ai response and let you extract the fields you care about using native n8n nodes.
 
 ## Compatibility
 
@@ -61,4 +77,4 @@ Every operation returns the raw Base64.ai API payload so you can post-process it
 
 ## Version History
 
-- **0.1.0** – Initial public release of the Base64.ai community node for n8n.
+- **1.0.0** – Current stable release. See [CHANGELOG.md](CHANGELOG.md) for full history.

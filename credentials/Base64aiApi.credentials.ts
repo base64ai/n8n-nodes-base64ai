@@ -13,7 +13,7 @@ export class Base64aiApi implements ICredentialType {
 	displayName = 'Base64.ai API';
 
 	// Link to your community node's README
-	documentationUrl = 'https://github.com/Base64ai/n8n-nodes-base64ai#credentials';
+	documentationUrl = 'https://github.com/Base64ai/n8n-nodes-base64ai#authentication';
 
 	properties: INodeProperties[] = [
 		{

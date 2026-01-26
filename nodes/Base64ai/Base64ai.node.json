@@ -2,11 +2,11 @@
 	"node": "@base64ai/n8n-nodes-base64ai",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": ["Development", "Developer Tools"],
+	"categories": ["Productivity", "Utility", "Miscellaneous"],
 	"resources": {
 		"credentialDocumentation": [
 			{
-				"url": "https://github.com/Base64ai/n8n-nodes-base64ai#credentials"
+				"url": "https://github.com/Base64ai/n8n-nodes-base64ai#authentication"
 			}
 		],
 		"primaryDocumentation": [

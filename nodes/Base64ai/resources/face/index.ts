@@ -35,6 +35,7 @@ const faceRecognitionProperties: INodeProperties[] = [
 		name: 'faceRecognitionDocumentUrl',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. https://example.com/face.jpg',
 		default: '',
 		displayOptions: {
 			show: {
@@ -77,6 +78,7 @@ const faceVerificationProperties: INodeProperties[] = [
 		name: 'faceVerificationDocumentUrl',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. https://example.com/face.jpg',
 		default: '',
 		displayOptions: {
 			show: {
@@ -91,6 +93,7 @@ const faceVerificationProperties: INodeProperties[] = [
 		name: 'faceVerificationQueryUrl',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. https://example.com/reference-face.jpg',
 		default: '',
 		displayOptions: {
 			show: {

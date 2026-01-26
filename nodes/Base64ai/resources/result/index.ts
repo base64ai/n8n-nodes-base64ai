@@ -40,6 +40,48 @@ export const resultDescription: INodeProperties[] = [
 		default: 'getFlowResults',
 	},
 	{
+		displayName: 'Flow',
+		name: 'resultFlow',
+		type: 'resourceLocator',
+		default: { __rl: true, mode: 'list', value: '' },
+		required: true,
+		displayOptions: {
+			show: {
+				...showOnlyForFlowResults,
+				'@version': [2],
+			},
+		},
+		description: 'Choose a Base64.ai flow to retrieve results from',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				placeholder: 'Select a flow...',
+				typeOptions: {
+					searchListMethod: 'getFlows',
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				placeholder: 'e.g. 2fa8fca0-b41d-3280-8b6e-0c47ddd22673',
+				validation: [
+					{
+						type: 'regex',
+						properties: {
+							regex:
+								'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
+							errorMessage: 'Enter a valid Flow ID in UUID format',
+						},
+					},
+				],
+			},
+		],
+	},
+	{
 		displayName: 'Flow Selection',
 		name: 'resultFlowSelection',
 		type: 'options',
@@ -55,7 +97,10 @@ export const resultDescription: INodeProperties[] = [
 		],
 		default: 'list',
 		displayOptions: {
-			show: showOnlyForFlowResults,
+			show: {
+				...showOnlyForFlowResults,
+				'@version': [1],
+			},
 		},
 		description: 'Choose whether to select a flow from the dropdown or enter the ID manually',
 	},
@@ -73,6 +118,7 @@ export const resultDescription: INodeProperties[] = [
 			show: {
 				...showOnlyForFlowResults,
 				resultFlowSelection: ['list'],
+				'@version': [1],
 			},
 		},
 		description:
@@ -83,17 +129,19 @@ export const resultDescription: INodeProperties[] = [
 		name: 'resultFlowIdManual',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. 2fa8fca0-b41d-3280-8b6e-0c47ddd22673',
 		default: '',
 		displayOptions: {
 			show: {
 				...showOnlyForFlowResults,
 				resultFlowSelection: ['manual'],
+				'@version': [1],
 			},
 		},
 		description: 'Specify the Base64.ai flow ID manually (for example: 2fa8fca0-b41d-3280-8b6e-0c47ddd22673)',
 	},
 	{
-		displayName: 'Result Filters',
+		displayName: 'Options',
 		name: 'resultFilters',
 		type: 'collection',
 		placeholder: 'Add Filter',
@@ -109,7 +157,7 @@ export const resultDescription: INodeProperties[] = [
 				type: 'number',
 				typeOptions: {
 					minValue: 1,
-					maxValue: 500,
+					maxValue: 100,
 				},
 				default: 50,
 				description: 'Max number of results to return',
@@ -118,6 +166,7 @@ export const resultDescription: INodeProperties[] = [
 				displayName: 'Previous Timestamp',
 				name: 'qPreviousTimestamp',
 				type: 'string',
+				placeholder: 'e.g. 1735689600000',
 				default: '',
 				description:
 					'Only return results created before this timestamp (in milliseconds). Maps to qPreviousTimestamp.',
@@ -126,6 +175,7 @@ export const resultDescription: INodeProperties[] = [
 				displayName: 'Next Timestamp',
 				name: 'qNextTimestamp',
 				type: 'string',
+				placeholder: 'e.g. 1735689600000',
 				default: '',
 				description:
 					'Only return results created after this timestamp (in milliseconds). Maps to qNextTimestamp.',
@@ -134,6 +184,7 @@ export const resultDescription: INodeProperties[] = [
 				displayName: 'Status Filter',
 				name: 'filter',
 				type: 'string',
+				placeholder: 'e.g. approved,autoApproved',
 				default: '',
 				description:
 					'Comma-separated list of statuses to include (for example: approved,autoApproved). Maps to filter.',
@@ -141,15 +192,75 @@ export const resultDescription: INodeProperties[] = [
 		],
 	},
 	{
+		displayName: 'Sorting',
+		name: 'resultSorting',
+		type: 'collection',
+		placeholder: 'Add Sort',
+		default: {},
+		displayOptions: {
+			show: {
+				...showOnlyForFlowResults,
+				'@version': [2],
+			},
+		},
+		description: 'Return results in newest-first order for the selected field',
+		options: [
+			{
+				displayName: 'Order By',
+				name: 'orderBy',
+				type: 'options',
+				options: [
+					{
+						name: 'Updated At',
+						value: 'updatedAt',
+					},
+					{
+						name: 'Created At',
+						value: 'createdAt',
+					},
+				],
+				default: 'updatedAt',
+				description: 'Field to use for sorting',
+			},
+		],
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				...showOnlyForFlowResults,
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
+	},
+	{
 		displayName: 'Result UUID',
 		name: 'resultUuid',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. 2fa8fca0-b41d-3280-8b6e-0c47ddd22673',
 		default: '',
 		displayOptions: {
 			show: showOnlyForResultUuid,
 		},
 		description: 'UUID of the specific result you want to fetch',
+	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				...showOnlyForResultUuid,
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
 	},
 ];
 

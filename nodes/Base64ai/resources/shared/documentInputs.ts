@@ -5,7 +5,7 @@ const createDisplayOptions = (resource: string, operation: string) => ({
 	resource: [resource],
 });
 
-export const createScanInputProperties = (
+export const createDocumentInputProperties = (
 	resource: string,
 	operation: string,
 ): INodeProperties[] => {
@@ -39,6 +39,7 @@ export const createScanInputProperties = (
 			name: 'documentUrl',
 			type: 'string',
 			required: true,
+			placeholder: 'e.g. https://example.com/document.pdf',
 			default: '',
 			displayOptions: {
 				show: {
@@ -63,6 +64,47 @@ export const createScanInputProperties = (
 			description: 'Name of the binary property that contains the file data from a previous node',
 		},
 		{
+			displayName: 'Flow',
+			name: 'documentFlow',
+			type: 'resourceLocator',
+			default: { __rl: true, mode: 'list', value: '' },
+			displayOptions: {
+				show: {
+					...showOnly,
+					'@version': [2],
+				},
+			},
+			description: 'Choose a Base64.ai flow to apply to the document',
+			modes: [
+				{
+					displayName: 'From List',
+					name: 'list',
+					type: 'list',
+					placeholder: 'Select a flow...',
+					typeOptions: {
+						searchListMethod: 'getFlows',
+						searchable: true,
+					},
+				},
+				{
+					displayName: 'By ID',
+					name: 'id',
+					type: 'string',
+					placeholder: 'e.g. 2fa8fca0-b41d-3280-8b6e-0c47ddd22673',
+					validation: [
+						{
+							type: 'regex',
+							properties: {
+								regex:
+									'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
+								errorMessage: 'Enter a valid Flow ID in UUID format',
+							},
+						},
+					],
+				},
+			],
+		},
+		{
 			displayName: 'Flow Selection',
 			name: 'documentFlowSelection',
 			type: 'options',
@@ -78,7 +120,10 @@ export const createScanInputProperties = (
 			],
 			default: 'list',
 			displayOptions: {
-				show: showOnly,
+				show: {
+					...showOnly,
+					'@version': [1],
+				},
 			},
 			description: 'Decide whether to pick a Base64.ai flow from the list or enter an ID manually',
 		},
@@ -96,6 +141,7 @@ export const createScanInputProperties = (
 				show: {
 					...showOnly,
 					documentFlowSelection: ['list'],
+					'@version': [1],
 				},
 			},
 			description:
@@ -105,11 +151,13 @@ export const createScanInputProperties = (
 			displayName: 'Flow ID',
 			name: 'documentFlowIdManual',
 			type: 'string',
+			placeholder: 'e.g. 2fa8fca0-b41d-3280-8b6e-0c47ddd22673',
 			default: '',
 			displayOptions: {
 				show: {
 					...showOnly,
 					documentFlowSelection: ['manual'],
+					'@version': [1],
 				},
 			},
 			description: 'Enter a Base64.ai flow ID such as b013f15e-be16-4438-918d-bd4ea115abe8',

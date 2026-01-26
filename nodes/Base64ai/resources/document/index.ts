@@ -1,12 +1,15 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { scanDocumentDescription } from './scanDocument';
-import { createScanInputProperties } from '../shared/scanInputs';
+import { recognizeDocumentDescription } from './recognizeDocument';
+import { createDocumentInputProperties } from '../shared';
 
 const showOnlyForDocument = {
 	resource: ['document'],
 };
 
-const createAsyncScanDescription = createScanInputProperties('document', 'recognizeDocumentAsync');
+const createAsyncScanDescription = createDocumentInputProperties(
+	'document',
+	'recognizeDocumentAsync',
+);
 
 const getAsyncScanResultDescription: INodeProperties[] = [
 	{
@@ -14,6 +17,7 @@ const getAsyncScanResultDescription: INodeProperties[] = [
 		name: 'asyncFileUuid',
 		type: 'string',
 		required: true,
+		placeholder: 'e.g. 2fa8fca0-b41d-3280-8b6e-0c47ddd22673',
 		default: '',
 		displayOptions: {
 			show: {
@@ -24,9 +28,23 @@ const getAsyncScanResultDescription: INodeProperties[] = [
 		description:
 			'UUID returned from the async scan creation request. Used to poll for completion or fetch the result.',
 	},
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['getAsyncScanResult'],
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
+	},
 ];
 
-export const scanDescription: INodeProperties[] = [
+export const documentDescription: INodeProperties[] = [
 	{
 		displayName: 'Operation',
 		name: 'operation',
@@ -58,7 +76,35 @@ export const scanDescription: INodeProperties[] = [
 		],
 		default: 'recognizeDocument',
 	},
-	...scanDocumentDescription,
+	...recognizeDocumentDescription,
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['recognizeDocument'],
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
+	},
 	...createAsyncScanDescription,
+	{
+		displayName: 'Simplify',
+		name: 'simplify',
+		type: 'boolean',
+		default: false,
+		displayOptions: {
+			show: {
+				resource: ['document'],
+				operation: ['recognizeDocumentAsync'],
+				'@version': [2],
+			},
+		},
+		description: 'Whether to return a simplified version of the response instead of the raw data',
+	},
 	...getAsyncScanResultDescription,
 ];
