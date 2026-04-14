@@ -200,10 +200,10 @@ export class Base64ai implements INodeType {
 				const shouldSimplify = shouldSimplifyResponse(this, i, handlerKey);
 				const output = shouldSimplify ? simplifyResponse(handlerKey, response) : response;
 
-				returnData.push({ json: output as IDataObject });
+				returnData.push({ json: output as IDataObject, pairedItem: { item: i } });
 			} catch (error) {
 				if (this.continueOnFail()) {
-					returnData.push({ json: { error: (error as Error).message } });
+					returnData.push({ json: { error: (error as Error).message }, pairedItem: { item: i } });
 					continue;
 				}
 
