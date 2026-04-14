@@ -53,10 +53,6 @@ export class Base64ai implements INodeType {
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'base64aiApi', required: true }],
-		requestDefaults: {
-			baseURL: BASE_URL,
-			headers: DEFAULT_HEADERS,
-		},
 		properties: [
 			{
 				displayName: 'Resource',
